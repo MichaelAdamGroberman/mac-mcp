@@ -1,0 +1,33 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Swift toolchain
+        run: swift --version
+      - name: swift build
+        run: swift build -c debug
+      - name: swift test
+        run: swift test
+      - name: smoke (debug, unsigned)
+        run: |
+          BIN="$(swift build --show-bin-path)/MacMCP"
+          ( printf '%s\n' \
+              '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","clientInfo":{"name":"ci","version":"0"},"capabilities":{}}}' \
+              '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+            sleep 2
+          ) | "$BIN" 2>/dev/null > /tmp/mcp.out
+          COUNT=$(grep -o '"name":"[a-z_]*"' /tmp/mcp.out | sort -u | wc -l | tr -d ' ')
+          echo "tool count: $COUNT"
+          test "$COUNT" -ge 32

@@ -1,5 +1,12 @@
 # mac-mcp
 
+[![release](https://img.shields.io/github/v/release/MichaelAdamGroberman/mac-mcp?display_name=tag&sort=semver)](https://github.com/MichaelAdamGroberman/mac-mcp/releases)
+[![macOS](https://img.shields.io/badge/macOS-13%2B-blue.svg)](https://github.com/MichaelAdamGroberman/mac-mcp)
+[![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange.svg)](https://swift.org)
+[![signed](https://img.shields.io/badge/signed-Developer%20ID%20%2B%20hardened%20runtime-success)](https://github.com/MichaelAdamGroberman/mac-mcp/blob/main/SECURITY.md)
+[![mcpb](https://img.shields.io/badge/format-.mcpb-purple)](https://www.anthropic.com/engineering/desktop-extensions)
+[![tools](https://img.shields.io/badge/tools-32-informational)](https://github.com/MichaelAdamGroberman/mac-mcp#tools-32)
+
 Native macOS control for Claude Desktop, packaged as a one-click `.mcpb` extension.
 
 A Swift MCP server that exposes a typed, allow-listed surface for controlling macOS — built directly on **AppKit**, the **Accessibility API**, **NSPasteboard**, **UNUserNotificationCenter**, **CGWindowList**, and pre-compiled **OSAKit** scripts. The signed Developer ID binary gives Claude Desktop a stable TCC identity, so Accessibility and Automation grants persist across rebuilds.
@@ -46,6 +53,35 @@ Requires Swift 6+, macOS 13+, and the `Developer ID Application: Iosif Groberman
 
 Override the signing identity with `MACMCP_SIGN_IDENTITY=...` if needed.
 
+### Notarization (for distribution outside this Mac)
+
+For local installs the codesigned `.mcpb` works as-is. To distribute the bundle to other machines without Gatekeeper warnings, notarize and staple it.
+
+One-time setup — store credentials in the login keychain:
+
+```bash
+xcrun notarytool store-credentials macmcp-notary \
+    --apple-id "you@example.com" \
+    --team-id  "K8TEAW9B4H" \
+    --password "xxxx-xxxx-xxxx-xxxx"   # app-specific password
+```
+
+Generate the app-specific password at https://appleid.apple.com → *Sign-In and Security* → *App-Specific Passwords*.
+
+Then:
+
+```bash
+./scripts/build-app.sh    # sign
+./scripts/notarize.sh     # submit, wait, staple, repack dist/mac-mcp.mcpb
+```
+
+Verify:
+
+```bash
+spctl -a -vv -t install dist/MacMCP.app
+# accepted source=Notarized Developer ID
+```
+
 ## Install
 
 Either:
@@ -71,4 +107,13 @@ Zero outbound connections. `Info.plist` declares `NSAllowsArbitraryLoads=false` 
 
 ## License
 
-Proprietary (private repository).
+MIT — see [LICENSE](LICENSE).
+
+## Maintainer
+
+Maintained by **Michael Adam Groberman**.
+
+- **GitHub:** [@MichaelAdamGroberman](https://github.com/MichaelAdamGroberman)
+- **LinkedIn:** [michael-adam-groberman](https://www.linkedin.com/in/michael-adam-groberman/)
+
+For security reports use GitHub private vulnerability advisories (see [SECURITY.md](SECURITY.md)) — **do not** use LinkedIn DMs for sensitive disclosures.

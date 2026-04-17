@@ -1,0 +1,31 @@
+{
+  "$schema": "https://claude.ai/schemas/plugin-marketplace.json",
+  "name": "mac-mcp",
+  "display_name": "macOS Native Control (MCP)",
+  "version": "0.1.0",
+  "description": "Native macOS control: 32 typed allow-listed tools across windows, Finder, clipboard, screenshots, mouse/keyboard, app automation (Mail/Calendar/Messages/Safari/Notes), iTerm/Terminal, and iPhone Mirroring. Code-signed for stable TCC grants. No raw shell or AppleScript exec.",
+  "author": {
+    "name": "Michael Adam Groberman",
+    "url": "https://github.com/MichaelAdamGroberman"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MichaelAdamGroberman/mac-mcp"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/MichaelAdamGroberman/mac-mcp",
+  "documentation": "https://github.com/MichaelAdamGroberman/mac-mcp#readme",
+  "support": "https://github.com/MichaelAdamGroberman/mac-mcp/issues",
+  "keywords": [
+    "macos", "automation", "accessibility", "applescript", "osakit",
+    "mcp", "claude-desktop", "mcpb", "dxt", "iphone-mirroring",
+    "iterm", "terminal", "swift"
+  ],
+  "platforms": ["darwin"],
+  "primary_distribution": {
+    "format": "mcpb",
+    "asset_pattern": "mac-mcp.mcpb",
+    "release_url": "https://github.com/MichaelAdamGroberman/mac-mcp/releases/latest"
+  },
+  "categories": ["system-tools", "automation", "developer-tools"]
+}
