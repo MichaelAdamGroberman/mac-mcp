@@ -114,65 +114,53 @@ enum FinderTools {
 
         r.add(
             name: "spotlight_search",
-            description: "Run a Spotlight (NSMetadataQuery) search and return matching paths.",
+            description: "Run a Spotlight (mdfind) search and return matching paths. Accepts plain text or full kMDItem queries.",
             inputSchema: Schema.object(properties: [
                 "query": Schema.string("Spotlight query, e.g. 'kMDItemDisplayName == \"foo*\"' or plain words."),
-                "scope": Schema.string("Optional scope path (defaults to user home)."),
+                "scope": Schema.string("Optional scope path (defaults to whole index)."),
                 "limit": Schema.int("Max results (default 50, hard cap 500).")
             ], required: ["query"])
         ) { args in
             let q = try args.requiredString("query")
             let limit = min(args.int("limit") ?? 50, 500)
-            let scope = args.string("scope").map { URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath) }
-            let pred = predicate(for: q)
-            let results = await runSpotlight(predicate: pred, scope: scope, limit: limit)
-            return jsonResult(.array(results))
-        }
-    }
+            let scope = args.string("scope").map { ($0 as NSString).expandingTildeInPath }
 
-    @MainActor
-    private static func runSpotlight(predicate: NSPredicate, scope: URL?, limit: Int) async -> [Value] {
-        let mq = NSMetadataQuery()
-        mq.predicate = predicate
-        if let scope { mq.searchScopes = [scope] }
-
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            var observer: NSObjectProtocol?
-            observer = NotificationCenter.default.addObserver(
-                forName: .NSMetadataQueryDidFinishGathering,
-                object: mq,
-                queue: .main
-            ) { _ in
-                if let observer { NotificationCenter.default.removeObserver(observer) }
-                cont.resume(returning: ())
+            // Use mdfind: it doesn't require an active CFRunLoop the way
+            // NSMetadataQuery does, so it works inside an async-only Swift
+            // executable that never starts NSApplicationMain.
+            let task = Process()
+            task.launchPath = "/usr/bin/mdfind"
+            var argv: [String] = []
+            if let scope, !scope.isEmpty {
+                argv += ["-onlyin", scope]
             }
-            // Hard cap so Spotlight can't hang the tool call.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                if let observer { NotificationCenter.default.removeObserver(observer) }
-                if mq.isStarted { mq.stop() }
-                cont.resume(returning: ())
-            }
-            mq.start()
-        }
-        mq.disableUpdates()
-        if mq.isStarted { mq.stop() }
+            argv.append(q)
+            task.arguments = argv
 
-        var results: [Value] = []
-        for i in 0..<min(mq.resultCount, limit) {
-            if let item = mq.result(at: i) as? NSMetadataItem,
-               let path = item.value(forAttribute: NSMetadataItemPathKey) as? String {
-                results.append(.string(path))
-            }
-        }
-        return results
-    }
+            let stdoutPipe = Pipe()
+            let stderrPipe = Pipe()
+            task.standardOutput = stdoutPipe
+            task.standardError = stderrPipe
+            try task.run()
 
-    private static func predicate(for q: String) -> NSPredicate {
-        let trimmed = q.trimmingCharacters(in: .whitespaces)
-        if trimmed.contains("kMDItem") || trimmed.contains("==") || trimmed.contains("LIKE") {
-            return NSPredicate(fromMetadataQueryString: trimmed)
-                ?? NSPredicate(format: "kMDItemDisplayName CONTAINS[c] %@", trimmed)
+            // Cap at 5 s so a slow Spotlight can't hang the MCP loop.
+            let deadline = Date().addingTimeInterval(5)
+            while task.isRunning && Date() < deadline {
+                try await Task.sleep(nanoseconds: 25_000_000)
+            }
+            if task.isRunning {
+                task.terminate()
+                _ = try? await Task.sleep(nanoseconds: 250_000_000)
+                if task.isRunning { kill(task.processIdentifier, SIGKILL) }
+            }
+
+            let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+            let text = String(data: data, encoding: .utf8) ?? ""
+            let paths = text
+                .split(separator: "\n", omittingEmptySubsequences: true)
+                .prefix(limit)
+                .map { Value.string(String($0)) }
+            return jsonResult(.array(Array(paths)))
         }
-        return NSPredicate(format: "kMDItemDisplayName CONTAINS[c] %@", trimmed)
     }
 }

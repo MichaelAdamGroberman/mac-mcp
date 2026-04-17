@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "mac-mcp",
   "display_name": "macOS Native Control",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Native macOS control via Swift + Cocoa: windows, Finder, clipboard, screenshots, notifications, and typed app automation. Code-signed for stable TCC grants. No raw shell or AppleScript exec.",
   "long_description": "A Claude Desktop Extension that exposes a typed, allow-listed surface for controlling macOS — built directly on AppKit, the Accessibility API, NSPasteboard, UNUserNotificationCenter, CGWindowList, and pre-compiled OSAKit scripts. Unlike shell-based alternatives, every tool is an explicit named function with a JSON schema; there is no run_shell or run_applescript escape hatch. The signed Developer ID binary gives Claude Desktop a stable TCC identity, so Accessibility and Automation grants persist across rebuilds.",
   "author": {

@@ -5,7 +5,7 @@ enum MacMCPServer {
     static func make() async throws -> Server {
         let server = Server(
             name: "mac-mcp",
-            version: "0.2.0",
+            version: "0.2.1",
             capabilities: .init(
                 tools: .init(listChanged: false)
             )
