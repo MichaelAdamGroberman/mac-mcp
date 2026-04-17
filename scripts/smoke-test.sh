@@ -23,11 +23,11 @@ echo "==> piping initialize + tools/list to $BIN"
 RESP=$( ( printf '%s\n' "$REQ"; sleep 2 ) | MAC_MCP_LOG_LEVEL=warn "$BIN" 2>/dev/null )
 
 COUNT=$(printf '%s' "$RESP" | grep -o '"name":"[a-z_]*"' | sort -u | wc -l | tr -d ' ')
-echo "==> unique tool names returned: $COUNT (expecting ≥32)"
+echo "==> unique tool names returned: $COUNT (expecting ≥56)"
 
 # Show first response line and the full tool sampling
 printf '%s\n' "$RESP" | head -1 | head -c 200; echo "..."
 printf '%s\n' "$RESP" | tail -1 | grep -o '"name":"[a-z_]*"' | sort -u
 
-[ "$COUNT" -ge 32 ] || { echo "FAIL: too few tools (expected ≥32, got $COUNT)"; exit 1; }
+[ "$COUNT" -ge 56 ] || { echo "FAIL: too few tools (expected ≥56, got $COUNT)"; exit 1; }
 echo "OK"

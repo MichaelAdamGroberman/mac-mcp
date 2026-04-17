@@ -1,31 +1,39 @@
 {
-  "$schema": "https://claude.ai/schemas/plugin-marketplace.json",
   "name": "mac-mcp",
-  "display_name": "macOS Native Control (MCP)",
-  "version": "0.1.0",
-  "description": "Native macOS control: 32 typed allow-listed tools across windows, Finder, clipboard, screenshots, mouse/keyboard, app automation (Mail/Calendar/Messages/Safari/Notes), iTerm/Terminal, and iPhone Mirroring. Code-signed for stable TCC grants. No raw shell or AppleScript exec.",
-  "author": {
+  "owner": {
     "name": "Michael Adam Groberman",
-    "url": "https://github.com/MichaelAdamGroberman"
+    "email": "81723568+MichaelAdamGroberman@users.noreply.github.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MichaelAdamGroberman/mac-mcp"
+  "metadata": {
+    "description": "Native macOS control for Claude Desktop and Claude Code. 56 typed allow-listed MCP tools (windows, Finder, filesystem, system, input, app automation, terminal, iPhone Mirroring) plus 5 workflow skills. Code-signed Swift binary for stable TCC grants. Distributed as a one-click .mcpb.",
+    "version": "0.2.0",
+    "homepage": "https://github.com/MichaelAdamGroberman/mac-mcp"
   },
-  "license": "MIT",
-  "homepage": "https://github.com/MichaelAdamGroberman/mac-mcp",
-  "documentation": "https://github.com/MichaelAdamGroberman/mac-mcp#readme",
-  "support": "https://github.com/MichaelAdamGroberman/mac-mcp/issues",
-  "keywords": [
-    "macos", "automation", "accessibility", "applescript", "osakit",
-    "mcp", "claude-desktop", "mcpb", "dxt", "iphone-mirroring",
-    "iterm", "terminal", "swift"
-  ],
-  "platforms": ["darwin"],
-  "primary_distribution": {
-    "format": "mcpb",
-    "asset_pattern": "mac-mcp.mcpb",
-    "release_url": "https://github.com/MichaelAdamGroberman/mac-mcp/releases/latest"
-  },
-  "categories": ["system-tools", "automation", "developer-tools"]
+  "plugins": [
+    {
+      "name": "mac-mcp",
+      "source": "./",
+      "description": "Native macOS control: 56 typed tools across windows, Finder, filesystem (allow-listed roots, symlink-safe), clipboard, screenshots, mouse/keyboard, app automation (Mail/Calendar/Messages/Safari/Notes), iTerm/Terminal, and iPhone Mirroring. Plus 5 workflow skills.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Michael Adam Groberman",
+        "url": "https://github.com/MichaelAdamGroberman",
+        "email": "81723568+MichaelAdamGroberman@users.noreply.github.com"
+      },
+      "category": "general",
+      "homepage": "https://github.com/MichaelAdamGroberman/mac-mcp",
+      "keywords": [
+        "macos", "automation", "accessibility", "applescript", "osakit",
+        "mcp", "mcpb", "dxt", "claude-desktop", "iphone-mirroring",
+        "iterm", "terminal", "swift", "filesystem", "skills"
+      ],
+      "skills": [
+        "./skills/tcc-grant",
+        "./skills/safe-fs-edit",
+        "./skills/iphone-control",
+        "./skills/screen-context",
+        "./skills/window-arrange"
+      ]
+    }
+  ]
 }

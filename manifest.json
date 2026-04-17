@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "mac-mcp",
   "display_name": "macOS Native Control",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Native macOS control via Swift + Cocoa: windows, Finder, clipboard, screenshots, notifications, and typed app automation. Code-signed for stable TCC grants. No raw shell or AppleScript exec.",
   "long_description": "A Claude Desktop Extension that exposes a typed, allow-listed surface for controlling macOS — built directly on AppKit, the Accessibility API, NSPasteboard, UNUserNotificationCenter, CGWindowList, and pre-compiled OSAKit scripts. Unlike shell-based alternatives, every tool is an explicit named function with a JSON schema; there is no run_shell or run_applescript escape hatch. The signed Developer ID binary gives Claude Desktop a stable TCC identity, so Accessibility and Automation grants persist across rebuilds.",
   "author": {
@@ -19,7 +19,10 @@
       "command": "${__dirname}/server/MacMCP.app/Contents/MacOS/MacMCP",
       "args": [],
       "env": {
-        "MAC_MCP_LOG_LEVEL": "${user_config.log_level}"
+        "MAC_MCP_LOG_LEVEL": "${user_config.log_level}",
+        "MAC_MCP_FS_ALLOW": "${user_config.fs_allow}",
+        "MAC_MCP_FS_DENY_EXTRA": "${user_config.fs_deny_extra}",
+        "MAC_MCP_PROCESS_ALLOW": "${user_config.process_allow}"
       }
     }
   },
@@ -29,6 +32,27 @@
       "title": "Audit log level",
       "description": "JSONL audit log written to ~/Library/Logs/mac-mcp/audit.log",
       "default": "info",
+      "required": false
+    },
+    "fs_allow": {
+      "type": "string",
+      "title": "Filesystem allow roots",
+      "description": "Colon-separated paths the fs_* tools may touch. Defaults to your home directory. The deny list (/System, /Library, /private, /usr, /bin, /sbin, /var, /etc, /dev) always takes precedence.",
+      "default": "",
+      "required": false
+    },
+    "fs_deny_extra": {
+      "type": "string",
+      "title": "Additional filesystem deny roots",
+      "description": "Colon-separated paths to add to the default deny list (e.g. ~/.ssh:~/.aws).",
+      "default": "",
+      "required": false
+    },
+    "process_allow": {
+      "type": "string",
+      "title": "Process executable allow-list",
+      "description": "Colon-separated executable basenames the process_* tools may launch (e.g. 'git:rg:gh:fd:python3:node'). Default empty = process_* tools refuse all.",
+      "default": "",
       "required": false
     }
   },
@@ -40,6 +64,33 @@
     { "name": "move_window", "description": "Move a window to (x, y) screen coordinates via Accessibility API." },
     { "name": "resize_window", "description": "Resize a window to (width, height) via Accessibility API." },
     { "name": "set_space", "description": "Switch to a Mission Control space by index." },
+
+    { "name": "fs_read", "description": "Read a file (UTF-8 text or base64). Cap 10 MB. Allow-listed roots only." },
+    { "name": "fs_read_many", "description": "Batch read up to 50 files / 10 MB total. Per-file errors are reported per-entry." },
+    { "name": "fs_write", "description": "Write a file (text or base64). Modes: create / overwrite / append. Cap 50 MB." },
+    { "name": "fs_edit", "description": "Find/replace inside a file. Atomic write. Optional expect_count sanity guard." },
+    { "name": "fs_write_pdf", "description": "Render plain text to a PDF (letter / a4 / legal). Useful for reports/notes." },
+    { "name": "fs_list", "description": "List directory entries (name, kind, size, mtime). Optional recursive + glob." },
+    { "name": "fs_stat", "description": "Path metadata: kind, size, times, perms, uid/gid, symlink target, xattr names." },
+    { "name": "fs_copy", "description": "Copy a file or directory (both src + dst policy-checked)." },
+    { "name": "fs_move", "description": "Move or rename a file or directory (both src + dst policy-checked)." },
+    { "name": "fs_make_dir", "description": "Create a directory; parents=true creates intermediates. perms_octal default 755." },
+    { "name": "fs_delete", "description": "Delete a path. Default = move to Trash (recoverable). permanent=true unlinks." },
+    { "name": "fs_watch_once", "description": "Block until the next FSEvent inside a path (or timeout). Returns changed paths." },
+    { "name": "fs_xattr_get", "description": "Read a macOS extended attribute (or list xattr names with name='*')." },
+    { "name": "fs_xattr_set", "description": "Write a macOS extended attribute (text or base64)." },
+
+    { "name": "process_run", "description": "Run an allow-listed process synchronously (capped output + timeout). Allow-list via MAC_MCP_PROCESS_ALLOW." },
+    { "name": "process_start", "description": "Start an allow-listed process asynchronously, returning a session id." },
+    { "name": "process_read_output", "description": "Read available stdout/stderr from an async session (non-blocking)." },
+    { "name": "process_write_input", "description": "Write to a session's stdin; close_after=true to send EOF." },
+    { "name": "process_terminate", "description": "Terminate an async session (SIGTERM, then SIGKILL after 1s)." },
+    { "name": "process_list", "description": "List running processes (pid, ppid, uid, command). Read-only." },
+    { "name": "process_kill", "description": "Send a signal to a pid. Refuses pid 1 + cross-user kills (override via MAC_MCP_PROCESS_KILL_ANY=1)." },
+
+    { "name": "shortcut_list", "description": "List Apple Shortcuts on this Mac (optional folder filter)." },
+    { "name": "shortcut_run", "description": "Run an Apple Shortcut by name (optional input/output paths). 60 s timeout." },
+    { "name": "wait_ms", "description": "Sleep for N ms (cap 60000). Useful between iphone_mirror / focus_app calls." },
 
     { "name": "reveal_in_finder", "description": "Reveal a file or directory in Finder." },
     { "name": "get_finder_selection", "description": "Return the current Finder selection as an array of file URLs." },
