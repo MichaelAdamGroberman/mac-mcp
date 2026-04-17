@@ -7,15 +7,15 @@
     <key>CFBundleName</key>
     <string>MacMCP</string>
     <key>CFBundleDisplayName</key>
-    <string>macOS Native Control (MCP)</string>
+    <string>MacOS-MCP</string>
     <key>CFBundleExecutable</key>
     <string>MacMCP</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.2.1</string>
+    <string>0.2.2</string>
     <key>CFBundleVersion</key>
-    <string>3</string>
+    <string>4</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>LSMinimumSystemVersion</key>
