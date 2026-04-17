@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.michaelgroberman.MacMCP</string>
+    <key>CFBundleName</key>
+    <string>MacMCP</string>
+    <key>CFBundleDisplayName</key>
+    <string>macOS Native Control (MCP)</string>
+    <key>CFBundleExecutable</key>
+    <string>MacMCP</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSAppleScriptEnabled</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>MacMCP uses Apple Events to drive Mail, Calendar, Messages, Safari, Notes, Finder, and other apps on your behalf via the Model Context Protocol.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>MacMCP uses the Accessibility API to manage windows (focus, move, resize) and to send synthetic key events for space switching.</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>MacMCP creates and lists Calendar events at the request of the connected MCP client.</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>MacMCP may interact with Reminders via Apple Events at the request of the connected MCP client.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>MacMCP looks up Messages recipients via Contacts at the request of the connected MCP client.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>MacMCP may read photo library metadata at the request of the connected MCP client.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>MacMCP reveals files and reads selections in the Desktop folder at the request of the connected MCP client.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>MacMCP reveals and operates on files in the Documents folder at the request of the connected MCP client.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>MacMCP reveals and operates on files in the Downloads folder at the request of the connected MCP client.</string>
+    <key>NSSystemAdministrationUsageDescription</key>
+    <string>MacMCP does not perform system-administration operations.</string>
+    <!-- MacMCP makes no outbound network connections. The MCP transport is stdio,
+         and all tools are local (Cocoa, Accessibility API, OSAKit, sqlite read-only).
+         Setting NSAllowsArbitraryLoads=false with no exception domains makes the
+         no-network stance explicit. Public-key pinning (NSPinnedDomains) is not
+         applicable since there are no network targets to pin. -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSAllowsArbitraryLoadsForMedia</key>
+        <false/>
+        <key>NSAllowsArbitraryLoadsInWebContent</key>
+        <false/>
+        <key>NSAllowsLocalNetworking</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict/>
+        <!-- Empty NSPinnedDomains: pinning policy is "no domains permitted at all".
+             This binary opens zero TCP/UDP sockets; pinning is moot. -->
+        <key>NSPinnedDomains</key>
+        <dict/>
+    </dict>
+</dict>
+</plist>

@@ -1,0 +1,75 @@
+{
+  "manifest_version": "0.3",
+  "name": "mac-mcp",
+  "display_name": "macOS Native Control",
+  "version": "0.1.0",
+  "description": "Native macOS control via Swift + Cocoa: windows, Finder, clipboard, screenshots, notifications, and typed app automation. Code-signed for stable TCC grants. No raw shell or AppleScript exec.",
+  "long_description": "A Claude Desktop Extension that exposes a typed, allow-listed surface for controlling macOS — built directly on AppKit, the Accessibility API, NSPasteboard, UNUserNotificationCenter, CGWindowList, and pre-compiled OSAKit scripts. Unlike shell-based alternatives, every tool is an explicit named function with a JSON schema; there is no run_shell or run_applescript escape hatch. The signed Developer ID binary gives Claude Desktop a stable TCC identity, so Accessibility and Automation grants persist across rebuilds.",
+  "author": {
+    "name": "Michael Groberman"
+  },
+  "icon": "icon.png",
+  "compatibility": {
+    "platforms": ["darwin"]
+  },
+  "server": {
+    "type": "binary",
+    "entry_point": "server/MacMCP.app/Contents/MacOS/MacMCP",
+    "mcp_config": {
+      "command": "${__dirname}/server/MacMCP.app/Contents/MacOS/MacMCP",
+      "args": [],
+      "env": {
+        "MAC_MCP_LOG_LEVEL": "${user_config.log_level}"
+      }
+    }
+  },
+  "user_config": {
+    "log_level": {
+      "type": "string",
+      "title": "Audit log level",
+      "description": "JSONL audit log written to ~/Library/Logs/mac-mcp/audit.log",
+      "default": "info",
+      "required": false
+    }
+  },
+  "tools": [
+    { "name": "list_apps", "description": "List running applications (bundle id, name, pid, frontmost)." },
+    { "name": "list_windows", "description": "List on-screen windows with title, owner, pid, bounds, layer." },
+    { "name": "focus_app", "description": "Activate an application by bundle id or name." },
+    { "name": "focus_window", "description": "Raise and focus a specific window by id." },
+    { "name": "move_window", "description": "Move a window to (x, y) screen coordinates via Accessibility API." },
+    { "name": "resize_window", "description": "Resize a window to (width, height) via Accessibility API." },
+    { "name": "set_space", "description": "Switch to a Mission Control space by index." },
+
+    { "name": "reveal_in_finder", "description": "Reveal a file or directory in Finder." },
+    { "name": "get_finder_selection", "description": "Return the current Finder selection as an array of file URLs." },
+    { "name": "set_finder_tags", "description": "Set Finder tags on one or more files." },
+    { "name": "quick_look", "description": "Open Quick Look preview for a path." },
+    { "name": "move_to_trash", "description": "Move a file to the Trash (recoverable, not unlinked)." },
+    { "name": "spotlight_search", "description": "Run a Spotlight (NSMetadataQuery) search and return matching paths." },
+
+    { "name": "clipboard_read", "description": "Read the system pasteboard as a typed value (string / image / file URLs / RTF)." },
+    { "name": "clipboard_write", "description": "Write a typed value to the system pasteboard." },
+    { "name": "notify", "description": "Post a UNUserNotification to Notification Center." },
+    { "name": "prompt_user", "description": "Show a native input dialog and return the user's response." },
+    { "name": "screenshot_screen", "description": "Capture the main display (or a specified display) as base64 PNG." },
+    { "name": "screenshot_window", "description": "Capture a specific window by id as base64 PNG." },
+
+    { "name": "mouse_move", "description": "Move the mouse cursor to global (x, y)." },
+    { "name": "mouse_click", "description": "Click at (x, y) with optional button, count, modifiers." },
+    { "name": "mouse_drag", "description": "Press, drag (capped at 4096 px/axis), release." },
+    { "name": "mouse_scroll", "description": "Send a scroll-wheel event in line or pixel units." },
+    { "name": "key_press", "description": "Press a single key or chord (named keys + modifiers)." },
+    { "name": "type_text", "description": "Type a Unicode string by posting key events (cap 10k chars)." },
+
+    { "name": "mail", "description": "Mail.app: compose, search, list-unread (typed action enum)." },
+    { "name": "calendar", "description": "Calendar.app: create-event, list-today (typed action enum)." },
+    { "name": "messages", "description": "Messages.app: send, list-recent (typed action enum)." },
+    { "name": "safari", "description": "Safari: open-url, get-tabs, run-js-on-active-tab (typed action enum)." },
+    { "name": "notes", "description": "Notes.app: create, search, append (typed action enum)." },
+    { "name": "terminal", "description": "iTerm2 or Terminal.app: open_window, run_command, send_text, get_active_text, list_sessions (typed target + action)." },
+    { "name": "iphone_mirror", "description": "iPhone Mirroring (Sonoma+): launch, focus, type_text, screenshot, get_window. Tap via mouse_click on returned bounds." }
+  ],
+  "tools_generated": false,
+  "keywords": ["macos", "automation", "accessibility", "applescript", "osakit", "claude-desktop", "mcp"]
+}
