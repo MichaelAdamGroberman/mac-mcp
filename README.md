@@ -1,4 +1,4 @@
-# mac-mcp
+# MacOS-MCP (`mac-mcp`)
 
 [![release](https://img.shields.io/github/v/release/MichaelAdamGroberman/mac-mcp?display_name=tag&sort=semver)](https://github.com/MichaelAdamGroberman/mac-mcp/releases)
 [![macOS](https://img.shields.io/badge/macOS-13%2B-blue.svg)](https://github.com/MichaelAdamGroberman/mac-mcp)

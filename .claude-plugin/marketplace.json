@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Native macOS control for Claude Desktop and Claude Code. 56 typed allow-listed MCP tools (windows, Finder, filesystem, system, input, app automation, terminal, iPhone Mirroring) plus 5 workflow skills. Code-signed Swift binary for stable TCC grants. Distributed as a one-click .mcpb.",
-    "version": "0.2.0",
+    "version": "0.2.2",
     "homepage": "https://github.com/MichaelAdamGroberman/mac-mcp"
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "mac-mcp",
       "source": "./",
       "description": "Native macOS control: 56 typed tools across windows, Finder, filesystem (allow-listed roots, symlink-safe), clipboard, screenshots, mouse/keyboard, app automation (Mail/Calendar/Messages/Safari/Notes), iTerm/Terminal, and iPhone Mirroring. Plus 5 workflow skills.",
-      "version": "0.2.0",
+      "version": "0.2.2",
       "author": {
         "name": "Michael Adam Groberman",
         "url": "https://github.com/MichaelAdamGroberman",

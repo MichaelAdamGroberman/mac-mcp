@@ -84,23 +84,34 @@ enum SystemTools {
             let body = try args.requiredString("body")
             let subtitle = args.string("subtitle") ?? ""
 
-            let center = UNUserNotificationCenter.current()
-            // Best-effort permission request; ignore errors (we still try to deliver).
-            _ = try? await center.requestAuthorization(options: [.alert, .sound])
-
-            let content = UNMutableNotificationContent()
-            content.title = title
-            content.body = body
-            if !subtitle.isEmpty { content.subtitle = subtitle }
-            let req = UNNotificationRequest(
-                identifier: UUID().uuidString,
-                content: content,
-                trigger: nil
-            )
-            do {
-                try await center.add(req)
-            } catch {
-                throw MacMCPError(code: "notify_failed", message: String(describing: error))
+            // UNUserNotificationCenter requires an active CFRunLoop to deliver
+            // its delegate callbacks; this binary runs under Swift Concurrency
+            // without NSApplicationMain, so the runloop never spins. Shell out
+            // to osascript instead — it has its own runloop.
+            func esc(_ s: String) -> String {
+                s.replacingOccurrences(of: "\\", with: "\\\\")
+                 .replacingOccurrences(of: "\"", with: "\\\"")
+            }
+            var script = "display notification \"\(esc(body))\" with title \"\(esc(title))\""
+            if !subtitle.isEmpty {
+                script += " subtitle \"\(esc(subtitle))\""
+            }
+            let task = Process()
+            task.launchPath = "/usr/bin/osascript"
+            task.arguments = ["-e", script]
+            let errPipe = Pipe()
+            task.standardError = errPipe
+            try task.run()
+            task.waitUntilExit()
+            if task.terminationStatus != 0 {
+                let err = String(
+                    data: errPipe.fileHandleForReading.readDataToEndOfFile(),
+                    encoding: .utf8
+                ) ?? ""
+                throw MacMCPError(
+                    code: "notify_failed",
+                    message: "osascript exit \(task.terminationStatus): \(err.trimmingCharacters(in: .whitespacesAndNewlines))"
+                )
             }
             return jsonResult(.object(["delivered": .bool(true)]))
         }
@@ -122,23 +133,56 @@ enum SystemTools {
             let okLabel = args.string("ok_label") ?? "OK"
             let cancelLabel = args.string("cancel_label") ?? "Cancel"
 
-            return await MainActor.run {
-                let alert = NSAlert()
-                alert.messageText = title
-                alert.informativeText = message
-                alert.addButton(withTitle: okLabel)
-                alert.addButton(withTitle: cancelLabel)
-                let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-                field.stringValue = defaultValue
-                alert.accessoryView = field
-                NSApp.activate(ignoringOtherApps: true)
-                let response = alert.runModal()
-                let confirmed = (response == .alertFirstButtonReturn)
+            // NSAlert.runModal() requires the AppKit runloop to be running,
+            // which it isn't in a Swift-Concurrency-only binary. Shell out to
+            // osascript's `display dialog` — same UI, runs in its own runloop.
+            func esc(_ s: String) -> String {
+                s.replacingOccurrences(of: "\\", with: "\\\\")
+                 .replacingOccurrences(of: "\"", with: "\\\"")
+            }
+            let script = """
+            display dialog "\(esc(message))" \
+                with title "\(esc(title))" \
+                default answer "\(esc(defaultValue))" \
+                buttons {"\(esc(cancelLabel))", "\(esc(okLabel))"} \
+                default button "\(esc(okLabel))"
+            """
+            let task = Process()
+            task.launchPath = "/usr/bin/osascript"
+            task.arguments = ["-e", script]
+            let outPipe = Pipe()
+            let errPipe = Pipe()
+            task.standardOutput = outPipe
+            task.standardError = errPipe
+            try task.run()
+            task.waitUntilExit()
+            let stdoutText = String(
+                data: outPipe.fileHandleForReading.readDataToEndOfFile(),
+                encoding: .utf8
+            ) ?? ""
+            // osascript returns: "button returned:OK, text returned:VALUE"
+            // (or non-zero exit + 'User canceled.' on stderr if Cancel pressed).
+            if task.terminationStatus != 0 {
                 return jsonResult(.object([
-                    "confirmed": .bool(confirmed),
-                    "value": .string(confirmed ? field.stringValue : "")
+                    "confirmed": .bool(false),
+                    "value": .string("")
                 ]))
             }
+            var buttonReturned = ""
+            var textReturned = ""
+            for part in stdoutText.split(separator: ",") {
+                let trimmed = part.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("button returned:") {
+                    buttonReturned = String(trimmed.dropFirst("button returned:".count))
+                } else if trimmed.hasPrefix("text returned:") {
+                    textReturned = String(trimmed.dropFirst("text returned:".count))
+                }
+            }
+            let confirmed = (buttonReturned == okLabel)
+            return jsonResult(.object([
+                "confirmed": .bool(confirmed),
+                "value": .string(confirmed ? textReturned : "")
+            ]))
         }
 
         r.add(
